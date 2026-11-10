@@ -1,5 +1,6 @@
 # Глав.Документ — Генератор XML-документов ЭДО (УПД 5.03)
 
+[![C#](https://img.shields.io/badge/Language-C%23-239120?style=flat&logo=csharp)](https://learn.microsoft.com/dotnet/csharp/)
 [![.NET 8.0](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D7?style=flat&logo=windows)](https://learn.microsoft.com/dotnet/desktop/wpf/)
 [![ФНС России](https://img.shields.io/badge/ФНС_России-Приказ_№_ЕД--7--26%2F970%40-red)](https://www.nalog.gov.ru/)
