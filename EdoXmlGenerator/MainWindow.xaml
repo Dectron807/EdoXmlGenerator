@@ -6,7 +6,7 @@
         xmlns:views="clr-namespace:EdoXmlGenerator.Views"
         xmlns:vm="clr-namespace:EdoXmlGenerator.ViewModels"
         mc:Ignorable="d"
-        Title="Edo XML Generator" Height="780" Width="1280" MinHeight="620" MinWidth="1040"
+        Title="Глав.Документ — Генератор документов ЭДО (УПД 5.03)" Height="780" Width="1280" MinHeight="620" MinWidth="1040"
         Icon="pack://application:,,,/img/ico.ico"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI" FontSize="13"
