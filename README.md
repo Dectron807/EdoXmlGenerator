@@ -171,4 +171,4 @@ dotnet run --project EdoXmlGenerator/EdoXmlGenerator.csproj
 
 ## 📄 Лицензия
 
-Проект распространяется под лицензией [MIT](LICENSE).
+Проект распространяется под лицензией [MIT](LICENSE) (также доступен [перевод на русский язык](LICENSE.ru.md)).
