@@ -1,0 +1,14 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Explicit language detection for GitHub Linguist
+*.cs linguist-language=C#
+*.xaml linguist-language=XAML linguist-detectable=true
+
+# Vendor data, schemas and binary assets so they do not skew programming language statistics
+*.xsd linguist-vendored
+*.xml linguist-vendored
+*.json linguist-vendored
+*.xlsx linguist-vendored
+*.png linguist-vendored
+*.ico linguist-vendored
