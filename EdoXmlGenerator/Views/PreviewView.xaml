@@ -1,0 +1,31 @@
+<UserControl x:Class="EdoXmlGenerator.Views.PreviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Предпросмотр XML" FontSize="20" FontWeight="Bold"
+                   Foreground="{StaticResource TextBrush}"/>
+
+        <Border Grid.Row="2" Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <RichTextBox x:Name="XmlView" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="13"
+                         Padding="8" BorderThickness="0"/>
+        </Border>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Назад" Command="{Binding BackCommand}"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
+            <Button Content="Копировать" Command="{Binding CopyCommand}"
+                    Style="{StaticResource SecondaryButtonStyle}" Margin="8,0,0,0"/>
+            <Button Content="Сохранить как XML" Command="{Binding SaveCommand}" Margin="8,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

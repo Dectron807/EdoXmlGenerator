@@ -1,0 +1,23 @@
+## .NET & Visual Studio
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+*.user
+*.userprefs
+*.suo
+*.sln.docstates
+*.ide
+
+## Build outputs
+*.pdb
+*.cache
+*.intermediate
+*.opensdf
+*.opendb
+
+## OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini

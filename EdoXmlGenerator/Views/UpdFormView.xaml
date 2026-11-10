@@ -1,0 +1,737 @@
+<UserControl x:Class="EdoXmlGenerator.Views.UpdFormView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EdoXmlGenerator.ViewModels"
+             xmlns:svc="clr-namespace:EdoXmlGenerator.Services">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <svc:EmptyStringToVisibilityConverter x:Key="EmptyToVis"/>
+        <svc:StringToVisibilityConverter x:Key="StringToVis"/>
+
+        <Style x:Key="ErrorNoteStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#C0392B"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="PlaceholderStyle2" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#9AA3B2"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="11,0,0,0"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,8,0,12"/>
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- TextBox с подсказкой-примером внутри пустого поля -->
+        <Style x:Key="HintTextBox" TargetType="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="9,7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" SnapsToDevicePixels="True">
+                            <Grid ClipToBounds="True">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Stretch" Focusable="False"/>
+                                <TextBlock Text="{Binding Path=(svc:Hint.AttachedHint), RelativeSource={RelativeSource TemplatedParent}}"
+                                           Style="{StaticResource PlaceholderStyle2}"
+                                           Visibility="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource EmptyToVis}}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#AFC6E8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20">
+            <TextBlock Text="Универсальный передаточный документ (УПД) — формат 5.03 ФНС РФ"
+                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+            <TextBlock Text="Формирование регламентного XML (схема ON_NSCHFDOPPR_1_997_01_05_03_05, КНД 1115131) для передачи через ЭДО"
+                       FontSize="12" Foreground="#6C7A89" Margin="0,4,0,16"/>
+
+            <!-- ============ 1. РЕКВИЗИТЫ ДОКУМЕНТА ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="1. Реквизиты документа (статус и исправления)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Статус УПД" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding StatusOptions}"
+                              SelectedIndex="{Binding StatusIndex}" MinWidth="340" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Номер документа (строка 1)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DocumentNumber, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: № 125"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Дата составления (строка 1)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <DatePicker Grid.Row="2" Grid.Column="1" SelectedDate="{Binding DocumentDate}" MinWidth="180" MaxWidth="180" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Исправление — номер (строка 1а)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxCorrNum" Text="{Binding CorrectionNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 1" svc:Hint.ValidateAs="number"
+                                 MinWidth="140" MaxWidth="220"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxCorrNum}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxCorrNum, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Исправление — дата (строка 1а)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <DatePicker Grid.Row="4" Grid.Column="1" SelectedDate="{Binding CorrectionDate}" MinWidth="180" MaxWidth="180" HorizontalAlignment="Left" Margin="0,2"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 2. ПРОДАВЕЦ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="2. Продавец (строка 2, 2а, 2б счета-фактуры)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Тип лица" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Организация (ЮЛ) — снять для ИП" IsChecked="{Binding Supplier.IsOrganization}" VerticalAlignment="Center" Margin="4,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Наименование (строка 2)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Supplier.Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ООО «Ромашка» или ИП Иванов И.И."
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="ИНН (строка 2б)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupInn" Text="{Binding Supplier.Inn, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 7701234567" svc:Hint.ValidateAs="inn"
+                                 MaxLength="12" MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSupInn}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSupInn, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="КПП (строка 2б)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupKpp" Text="{Binding Supplier.Kpp, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 770101001" svc:Hint.ValidateAs="kpp"
+                                 MaxLength="9" MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSupKpp}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSupKpp, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="ОКПО" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupOkpo" Text="{Binding Supplier.Okpo, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 12345678" svc:Hint.ValidateAs="okpo"
+                                 MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSupOkpo}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSupOkpo, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Адрес (строка 2а)" VerticalAlignment="Top" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Supplier.Address, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 125009, г. Москва, ул. Тверская, д. 10, оф. 5"
+                             TextWrapping="Wrap" MinWidth="400" MaxWidth="600" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Банк продавца" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Supplier.BankName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ПАО СБЕРБАНК г. Москва"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="БИК банка" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupBik" Text="{Binding Supplier.Bik, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 044525225" svc:Hint.ValidateAs="bik"
+                                 MaxLength="9" MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSupBik}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSupBik, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="8" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Расчётный счёт" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupAcc" Text="{Binding Supplier.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 40702810000000000000" svc:Hint.ValidateAs="account"
+                                 MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSupAcc}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSupAcc, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="9" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Корр. счёт" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="9" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupCorr" Text="{Binding Supplier.CorrAccount, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 30101810400000000225" svc:Hint.ValidateAs="corr"
+                                 MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSupCorr}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSupCorr, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="10" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Телефон / e-mail" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="10" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSupPhone" Text="{Binding Supplier.Phone, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: +7 495 123-45-67" svc:Hint.ValidateAs="phone"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                        <TextBox x:Name="bxSupEmail" Text="{Binding Supplier.Email, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: info@company.ru" svc:Hint.ValidateAs="email"
+                                 MinWidth="220" MaxWidth="260" Margin="0,0,8,0"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 3. ГРУЗООТПРАВИТЕЛЬ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="3. Грузоотправитель (строка 3 счета-фактуры)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Совпадение с продавцом" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Грузоотправитель совпадает с продавцом («он же»)"
+                              IsChecked="{Binding ShipperIsSeller}" VerticalAlignment="Center" Margin="4,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Наименование грузоотправителя" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Shipper.Name, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding ShipperIsSeller, Converter={StaticResource EmptyToVis}}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ООО «Складской Комплекс»"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="ИНН / КПП грузоотправителя" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding Shipper.Inn, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 7701234567" svc:Hint.ValidateAs="inn"
+                                 MaxLength="12" MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding Shipper.Kpp, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 770101001" svc:Hint.ValidateAs="kpp"
+                                 MaxLength="9" MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Адрес склада отгрузки" VerticalAlignment="Top" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Shipper.Address, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 141400, МО, г. Химки, ул. Заводская, склад 4"
+                             TextWrapping="Wrap" MinWidth="400" MaxWidth="600" HorizontalAlignment="Left" Margin="0,2"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 4. ПОКУПАТЕЛЬ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="4. Покупатель (строка 6, 6а, 6б счета-фактуры)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Тип лица" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Организация (ЮЛ) — снять для ИП" IsChecked="{Binding Buyer.IsOrganization}" VerticalAlignment="Center" Margin="4,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Наименование (строка 6)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Buyer.Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ООО «Партнер-Трейд»"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="ИНН (строка 6б)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxBuyInn" Text="{Binding Buyer.Inn, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 7701234567" svc:Hint.ValidateAs="inn"
+                                 MaxLength="12" MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxBuyInn}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxBuyInn, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="КПП (строка 6б)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxBuyKpp" Text="{Binding Buyer.Kpp, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 770101001" svc:Hint.ValidateAs="kpp"
+                                 MaxLength="9" MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxBuyKpp}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxBuyKpp, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Адрес (строка 6а)" VerticalAlignment="Top" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Buyer.Address, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 190000, г. Санкт-Петербург, Невский пр-кт, д. 20, оф. 1"
+                             TextWrapping="Wrap" MinWidth="400" MaxWidth="600" HorizontalAlignment="Left" Margin="0,2"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 5. ГРУЗОПОЛУЧАТЕЛЬ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="5. Грузополучатель (строка 4 счета-фактуры)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Совпадение с покупателем" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="0" Grid.Column="1" Content="Грузополучатель совпадает с покупателем"
+                              IsChecked="{Binding ConsigneeIsBuyer}" VerticalAlignment="Center" Margin="4,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Наименование грузополучателя" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Consignee.Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ООО «Торговая База»"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="ИНН / КПП грузополучателя" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding Consignee.Inn, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 7701234567" svc:Hint.ValidateAs="inn"
+                                 MaxLength="12" MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding Consignee.Kpp, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 770101001" svc:Hint.ValidateAs="kpp"
+                                 MaxLength="9" MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Адрес доставки / склада" VerticalAlignment="Top" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Consignee.Address, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 192019, г. Санкт-Петербург, ул. Седова, склад 12"
+                             TextWrapping="Wrap" MinWidth="400" MaxWidth="600" HorizontalAlignment="Left" Margin="0,2"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 6. СТРОКИ 5 и 5а СЧЕТА-ФАКТУРЫ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="6. Платежные документы и документ об отгрузке (строки 5 и 5а)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="К платежно-расчетному док. (строка 5)" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding PaymentDocNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ПП-482"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0" ToolTip="Номер платежно-расчетного документа"/>
+                        <DatePicker SelectedDate="{Binding PaymentDocDate}" MinWidth="180" MaxWidth="180" ToolTip="Дата платежа (при авансе)"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Документ об отгрузке: наим. (строка 5а)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ShipmentDocName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Универсальный передаточный документ"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Документ об отгрузке: № / дата (строка 5а)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding ShipmentDocNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 125"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0" ToolTip="Номер документа об отгрузке (по умолчанию номер УПД)"/>
+                        <DatePicker SelectedDate="{Binding ShipmentDocDate}" MinWidth="180" MaxWidth="180" ToolTip="Дата документа об отгрузке"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 7. ВАЛЮТА И ГОСКОНТРАКТ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="7. Валюта и идентификатор госконтракта (строки 7 и 8)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Валюта (строка 7)" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding CurrencyCode, UpdateSourceTrigger=PropertyChanged}" MaxLength="3"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 643"
+                                 MinWidth="100" MaxWidth="100" Margin="0,0,8,0" ToolTip="Цифровой код ОКВ"/>
+                        <TextBox Text="{Binding CurrencyName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Российский рубль"
+                                 MinWidth="220" MaxWidth="320" Margin="0,0,8,0" ToolTip="Наименование валюты"/>
+                        <TextBox Text="{Binding CurrencyRate, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="курс: 1.00"
+                                 MinWidth="100" MaxWidth="120" ToolTip="Курс валюты при расчетах в у.е."/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Идентификатор госконтракта (строка 8)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StateContractId, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 17701020304000000001 (при наличии)"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Содержание операции" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OperationContent, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Товары переданы, работы (услуги) выполнены в полном объеме"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 8. ТОВАРЫ И УСЛУГИ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="8. Товары, работы, услуги (табличная часть УПД)"/></Border>
+
+            <GroupBox>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="+ Добавить позицию" Command="{Binding AddProductCommand}"/>
+                        <Button Content="− Удалить позицию" Command="{Binding RemoveProductCommand}"
+                                CommandParameter="{Binding SelectedItem, ElementName=ProductsGrid}"
+                                Style="{StaticResource DangerButtonStyle}" Margin="8,0,0,0"/>
+                        <Button Content="📥 Импорт товаров из Excel" Command="{Binding ImportExcelCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Margin="12,0,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid x:Name="ProductsGrid" ItemsSource="{Binding Products}"
+                              SelectedIndex="{Binding SelectedIndex}" Height="340"
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="FontSize" Value="11.5"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="№ (гр. 1)" Binding="{Binding LineNumber}" Width="48" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Наименование (гр. 1а)" Binding="{Binding Name}" Width="*" MinWidth="220"/>
+                            <DataGridTextColumn Header="Код/Артикул (гр. А)" Binding="{Binding Code}" Width="90"/>
+                            <DataGridTextColumn Header="Код вида тов. (гр. 1б)" Binding="{Binding ProductTypeCode}" Width="100"/>
+                            <DataGridTemplateColumn Header="Ед. изм. (гр. 2, 2а)" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding UnitName}" VerticalAlignment="Center" Margin="4,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.Units, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedValue="{Binding UnitCode, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedValuePath="Code" DisplayMemberPath="Name"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Кол-во (гр. 3)" Binding="{Binding Quantity, StringFormat={}{0:0.####}}" Width="75"/>
+                            <DataGridTextColumn Header="Цена (гр. 4)" Binding="{Binding Price, StringFormat={}{0:F2}}" Width="90"/>
+                            <DataGridTextColumn Header="Сумма без НДС (гр. 5)" Binding="{Binding SumWithoutVat, StringFormat={}{0:F2}}" Width="110" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Акциз (гр. 6)" Binding="{Binding ExciseAmount, StringFormat={}{0:F2}}" Width="80"/>
+                            <DataGridTemplateColumn Header="Ставка НДС (гр. 7)" Width="105">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding VatRateLabel}" VerticalAlignment="Center" Margin="4,0"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.VatRateOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedItem="{Binding VatRateLabel, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Штрихкод (GTIN)" Binding="{Binding Gtin}" Width="110"/>
+                            <DataGridTextColumn Header="№ ГТД / РНПТ (гр. 11)" Binding="{Binding GtdNumber}" Width="110"/>
+                            <DataGridTextColumn Header="Код страны (гр. 10)" Binding="{Binding CountryCode}" Width="85"/>
+                            <DataGridTextColumn Header="Страна (гр. 10а)" Binding="{Binding CountryName}" Width="100"/>
+                            <DataGridTextColumn Header="НомТовПрослеж (гр. 11)" Binding="{Binding TrackNo}" Width="110"/>
+                            <DataGridTextColumn Header="Стоимость прослеж. (гр. 14)" Binding="{Binding TrackAmount, StringFormat={}{0:F2}}" Width="120"/>
+                            <DataGridTextColumn Header="КИЗ (маркировка Честный ЗНАК)" Binding="{Binding Kiz}" Width="120"/>
+                            <DataGridTextColumn Header="НомУпак (упаковка)" Binding="{Binding PackNo}" Width="95"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <TextBlock Text="Итого без НДС:" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding TotalWithoutVat}" FontWeight="Bold" Margin="6,0,20,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="НДС:" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding TotalVat}" FontWeight="Bold" Margin="6,0,20,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Всего к оплате:" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Total}" FontSize="15" FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- ============ 9. СВЕДЕНИЯ О ПЕРЕДАЧЕ И ТРАНСПОРТИРОВКЕ ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="9. Сведения о передаче и транспортировке (строки [10]–[16] бланка)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Основание передачи: наим. (строка [10])" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding BaseDocName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Договор поставки / Заказ-наряд"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Основание: № / дата (строка [10])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding BaseDocNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: № 15/2026"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding BaseDocDate}" MinWidth="180" MaxWidth="180"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Данные о транспортировке (строка [11])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TransportInfo, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Транспортная накладная № 15 от 12.02.2026, а/м Газель А123ВС777"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Товар передал / сдал (строка [12])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <CheckBox Content="Указать" IsChecked="{Binding HasTransferPerson}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBox Text="{Binding TransferPersonPosition, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Кладовщик"
+                                 MinWidth="160" MaxWidth="200" Margin="0,0,8,0" ToolTip="Должность лица, передавшего товар"/>
+                        <TextBox Text="{Binding TransferPersonFio, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Иванов И.И."
+                                 MinWidth="180" MaxWidth="220" ToolTip="ФИО лица, передавшего товар"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Дата передачи груза (строка [13])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <DatePicker Grid.Row="4" Grid.Column="1" SelectedDate="{Binding TransferDate}" MinWidth="180" MaxWidth="180" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Иные сведения об отгрузке (строка [14])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding GoodsTransferInfo, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Товар отгружен в заводской упаковке, сертификаты приложены"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Ответственный за оформление (строка [15])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding ResponsibleTransferPosition, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Главный бухгалтер"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding ResponsibleTransferFio, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Сидорова А.П."
+                                 MinWidth="180" MaxWidth="220"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Составитель документа (строка [16])" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding EconomicSubjectTransfer, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ООО «Ромашка» (или наименование агента/комиссионера)"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ 10. ПОДПИСАНТ ЭЦП / МЧД ============ -->
+            <Border Style="{StaticResource SectionHeader}"><TextBlock Style="{StaticResource SectionTitle}" Text="10. Подписант электронного документа (ЭЦП / МЧД)"/></Border>
+
+            <GroupBox>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Фамилия" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SignerLastName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Иванов" svc:Hint.ValidateAs="letters"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Имя" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SignerFirstName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Иван" svc:Hint.ValidateAs="letters"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Отчество" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SignerMiddleName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Иванович" svc:Hint.ValidateAs="letters"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Должность подписанта" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SignerPosition, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: Генеральный директор" svc:Hint.ValidateAs="letters"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Полномочия подписанта" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding PowerKindOptions}"
+                              SelectedIndex="{Binding SignerPowerKindIndex}" MinWidth="260" MaxWidth="360" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Бумажная доверенность: № / дата" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding ProcurationNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: № 12/Д"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding ProcurationDate}" MinWidth="180" MaxWidth="180"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="ИНН подписанта" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox x:Name="bxSignerInn" Text="{Binding SignerInn, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 770123456789" svc:Hint.ValidateAs="inn"
+                                 MaxLength="12" MinWidth="240" MaxWidth="500"/>
+                        <TextBlock Text="{Binding Path=(svc:Hint.Error), ElementName=bxSignerInn}"
+                                   Style="{StaticResource ErrorNoteStyle}"
+                                   Visibility="{Binding Path=(svc:Hint.Error), ElementName=bxSignerInn, Converter={StaticResource StringToVis}}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Тип подписи" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <ComboBox Grid.Row="7" Grid.Column="1" ItemsSource="{Binding SignTypeOptions}"
+                              SelectedIndex="{Binding SignerSignTypeIndex}" MinWidth="260" MaxWidth="360" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="8" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="Дата подписания документа" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <DatePicker Grid.Row="8" Grid.Column="1" SelectedDate="{Binding SignerSignDate}" MinWidth="180" MaxWidth="180" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="9" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="МЧД: идентификатор (URN / GUID)" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding SignerUrn, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 12f45e67-89ab-cdef-0123-456789abcdef"
+                             MinWidth="240" MaxWidth="500" HorizontalAlignment="Left" Margin="0,2"/>
+
+                    <TextBlock Grid.Row="10" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="МЧД: дата выдачи / внутренний №" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="10" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <DatePicker SelectedDate="{Binding SignerElProcDate}" MinWidth="180" MaxWidth="180" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding SignerElProcInnerNo, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: 12"
+                                 MinWidth="180" MaxWidth="220"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="11" Grid.Column="0" Style="{StaticResource FieldLabelStyle}" Text="МЧД: система хранения и URL" VerticalAlignment="Center" Margin="0,10,0,4"/>
+                    <StackPanel Grid.Row="11" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                        <TextBox Text="{Binding SignerStorageSystemId, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: ФНС России"
+                                 MinWidth="180" MaxWidth="220" Margin="0,0,8,0" ToolTip="ИдСистХран"/>
+                        <TextBox Text="{Binding SignerStorageUrl, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource HintTextBox}" svc:Hint.AttachedHint="пример: https://mchd.nalog.gov.ru"
+                                 MinWidth="240" MaxWidth="300" ToolTip="УРЛСист (URL системы хранения МЧД)"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <!-- ============ КНОПКИ ДЕЙСТВИЙ ============ -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,24">
+                <Button Content="💾 Сохранить шаблон" Command="{Binding SaveTemplateCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}" Padding="18,10"/>
+                <Button Content="📂 Загрузить шаблон" Command="{Binding LoadTemplateCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}" Padding="18,10" Margin="10,0,0,0"/>
+                <Button Content="📥 Импорт из XML" Command="{Binding ImportXmlCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}" Padding="18,10" Margin="10,0,18,0"/>
+                <Button Content="⚡ Сформировать XML (УПД 5.03)" Command="{Binding GenerateXmlCommand}"
+                        FontSize="15" FontWeight="SemiBold" Padding="24,10"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

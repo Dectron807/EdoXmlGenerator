@@ -1,0 +1,7 @@
+[
+  { "rate": 0, "label": "0%" },
+  { "rate": 5, "label": "5%" },
+  { "rate": 7, "label": "7%" },
+  { "rate": 10, "label": "10%" },
+  { "rate": 22, "label": "22%" }
+]
