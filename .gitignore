@@ -24,3 +24,7 @@ desktop.ini
 
 publish/
 [Pp]ublish/
+
+EdoXmlGenerator_Release/
+distinct_labels*.txt
+*текстовый документ*.txt

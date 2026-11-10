@@ -66,13 +66,11 @@ EdoXmlGenerator/
 ├── Services/            # Генераторы XML, валидация по XSD, импорт Excel/JSON, подсказки
 ├── Xsd/                 # Официальные схемы ФНС России (версия 5.03)
 ├── Templates/           # Встроенные шаблоны документов
-├── Data/                # Справочники единиц измерения и кодов
-└── EdoXmlGenerator_Release/ # Готовый дистрибутив (установщик, portable, инструкции)
-    ├── Setup_EdoXmlGenerator.exe         # Графический установщик
-    ├── Быстрая_установка.bat             # Быстрая установка в 1 клик
-    ├── ИНСТРУКЦИЯ_ПО_РАБОТЕ_С_ПРОГРАММОЙ.html # Интерактивная веб-инструкция
-    └── Программа_без_установки (Portable)/   # Портативная версия
+└── Data/                # Справочники единиц измерения и кодов
 ```
+
+> 💡 **Скачать готовую программу:**  
+> Готовый установщик (`Setup_EdoXmlGenerator.exe`) и портативная версия без установки доступны на вкладке [**Releases**](https://github.com/Dectron807/EdoXmlGenerator/releases).
 
 ---
 
@@ -86,7 +84,7 @@ EdoXmlGenerator/
 
 ```bash
 # Клонирование репозитория
-git clone https://github.com/<ваш-аккаунт>/EdoXmlGenerator.git
+git clone https://github.com/Dectron807/EdoXmlGenerator.git
 cd EdoXmlGenerator
 
 # Сборка проекта
